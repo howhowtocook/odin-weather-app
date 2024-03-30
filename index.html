@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+      #weather-container {
+        margin-top: 20px;
+      }
+      #toggle {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Weather App</h1>
+    <input type="text" id="location-input" placeholder="Enter Location" />
+    <button onclick="getWeather()">Get Weather</button>
+    <div id="weather-container"></div>
+    <div id="toggle">
+      <input type="radio" name="unit" value="imperial" id="imperial" checked />
+      <label for="imperial">Fahrenheit</label>
+      <input type="radio" name="unit" value="metric" id="metric" />
+      <label for="metric">Celsius</label>
+    </div>
+    <img id="#" />
+
+    <script>
+      async function getWeather() {
+        const location = document.getElementById("location-input").value;
+        const unit = document.querySelector('input[name="unit"]:checked').value;
+        const apiKey = "d43a8f40d97a4241a0d35554243003";
+        const apiUrl = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=no`;
+
+        try {
+          const response = await fetch(apiUrl);
+          const data = await response.json();
+
+          if (response.ok) {
+            displayWeather(data);
+          } else {
+            alert("Location not found. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+
+      function displayWeather(data) {
+        const weatherContainer = document.getElementById("weather-container");
+        const temperature = data.current.temp_c; // Display temperature in Celsius by default
+        const weatherDescription = data.current.condition.text;
+        const icon = data.current.condition.icon;
+
+        weatherContainer.innerHTML = `
+        <p>Temperature: ${temperature} &deg;C</p>
+        <p>Description: ${weatherDescription}</p>
+      `;
+
+        document.body.style.backgroundColor =
+          getBackgroundColor(weatherDescription);
+
+        fetchNewImage(data.current.condition.text);
+      }
+
+      function getBackgroundColor(weatherDescription) {
+        const lowerCaseDescription = weatherDescription.toLowerCase();
+        if (lowerCaseDescription.includes("clear")) {
+          return "lightblue";
+        } else if (lowerCaseDescription.includes("cloud")) {
+          return "lightgray";
+        } else if (lowerCaseDescription.includes("rain")) {
+          return "lightgreen";
+        } else if (lowerCaseDescription.includes("thunderstorm")) {
+          return "orange";
+        } else if (lowerCaseDescription.includes("snow")) {
+          return "white";
+        } else {
+          return "lightgray";
+        }
+      }
+
+      function fetchNewImage(keyword) {
+        const img = document.querySelector("img");
+        const weather = keyword;
+        fetch(
+          "https://api.giphy.com/v1/gifs/translate?api_key=Zn5Bh2wZEHyTGdtJKZEPUDXUHfPRp5LD&s=${weather}&weirdness=4",
+          { mode: "cors" }
+        )
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (response) {
+            img.src = response.data.images.original.url;
+          })
+          .catch((error) => {
+            console.error("Error fetching GIF:", error);
+          });
+      }
+    </script>
+  </body>
+</html>
